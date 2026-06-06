@@ -1,26 +1,24 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import { registerWebHostCommands } from './commands/toggleWebHost';
+import { BpmAppProvider } from './providers/bpmAppProvider';
+import { ProcessManager } from './services/processManager';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "bpmsoft-devkit" is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('bpmsoft-devkit.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from BPMSoft DevKit!');
-	});
+	// 1. Инициализируем менеджер (слушатель терминалов включится автоматически)
+    const processManager = new ProcessManager();
+	const bpmAppProvider = new BpmAppProvider();
 
-	context.subscriptions.push(disposable);
+    // 2. Регистрируем команды кликов
+    registerWebHostCommands(context, processManager, bpmAppProvider);
+
+	// 3. Регистрируем UI-панель
+    vscode.window.registerTreeDataProvider('bpmsoft-sidebar-view', bpmAppProvider);
+
+	// Добавляем менеджер процессов в подписки контекста, 
+    // чтобы при закрытии VS Code вызвался метод dispose() и очистил статус-бар
+    context.subscriptions.push(processManager);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}

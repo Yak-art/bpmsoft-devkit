@@ -9,15 +9,59 @@
   "categories": [
     "Other"
   ],
+  "enabledApiProposals": [
+    "terminalDataWriteEvent"
+  ],
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "BPMSoft DevKit",
+      "properties": {
+        "bpmsoft.devkit.webHostFolderPath": {
+          "type": "string",
+          "default": "",
+          "description": "Путь до папки, содержащей BPMSoft.WebHost.dll (например, 'src/BPMSoft.WebHost'). Оставьте пустым, если папка открыта прямо в корне воркспейса.')"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "bpmsoft-devkit-sidebar",
+          "title": "BPMSoft DevKit",
+          "icon": "$(server)"
+        }
+      ]
+    },
+    "views": {
+      "bpmsoft-devkit-sidebar": [
+        {
+          "id": "bpmsoft-sidebar-view",
+          "name": "Управление стендом"
+        }
+      ]
+    },
     "commands": [
       {
-        "command": "bpmsoft-devkit.helloWorld",
-        "title": "Hello World"
+        "command": "bpmsoft.app.toggleUiSettings",
+        "title": "Открыть настройки",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "bpmsoft.app.toggleServer",
+        "title": "Запустить/Остановить сервер BPMSoft"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "bpmsoft.app.toggleUiSettings",
+          "when": "view == bpmsoft-sidebar-view",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -31,6 +75,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.19.19",
     "@types/vscode": "^1.120.0",
+    "@vscode/dts": "^0.4.1",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.39.3",
