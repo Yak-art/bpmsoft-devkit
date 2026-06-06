@@ -2,23 +2,25 @@ import * as vscode from 'vscode';
 import { registerWebHostCommands } from './commands/toggleWebHost';
 import { BpmAppProvider } from './providers/bpmAppProvider';
 import { ProcessManager } from './services/processManager';
+import { WebHostPathResolver } from './services/webHostPathResolver';
+import { BpmStatusBarManager } from './ui/bpmStatusBarManager';
 
 export function activate(context: vscode.ExtensionContext) {
-	console.log('Congratulations, your extension "bpmsoft-devkit" is now active!');
+    // 1. Инициализируем чистые атомарные сервисы
+    const pathResolver = new WebHostPathResolver();
+    const statusBarManager = new BpmStatusBarManager();
 
-	// 1. Инициализируем менеджер (слушатель терминалов включится автоматически)
-    const processManager = new ProcessManager();
-	const bpmAppProvider = new BpmAppProvider();
+    // 2. Внедряем их в главный менеджер процессов
+    const processManager = new ProcessManager(pathResolver, statusBarManager);
+    const bpmAppProvider = new BpmAppProvider();
 
-    // 2. Регистрируем команды кликов
+    // 3. Регистрируем команды UI
     registerWebHostCommands(context, processManager, bpmAppProvider);
 
-	// 3. Регистрируем UI-панель
     vscode.window.registerTreeDataProvider('bpmsoft-sidebar-view', bpmAppProvider);
 
-	// Добавляем менеджер процессов в подписки контекста, 
-    // чтобы при закрытии VS Code вызвался метод dispose() и очистил статус-бар
-    context.subscriptions.push(processManager);
+    // 4. Складываем всё в корзину деактивации контекста
+    context.subscriptions.push(statusBarManager, processManager);
 }
 
 export function deactivate() {}
