@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
-import { registerWebHostCommands } from './commands/toggleWebHost';
+import { registerConfigCommands } from './commands/configCommands';
+import { registerProcessCommands } from './commands/processCommands';
+import { registerUiCommands } from './commands/uiCommands';
 import { BpmAppProvider } from './providers/bpmAppProvider';
 import { ProcessManager } from './services/processManager';
 import { WebHostPathResolver } from './services/webHostPathResolver';
@@ -14,8 +16,10 @@ export function activate(context: vscode.ExtensionContext) {
     const processManager = new ProcessManager(pathResolver, statusBarManager);
     const bpmAppProvider = new BpmAppProvider();
 
-    // 3. Регистрируем команды UI
-    registerWebHostCommands(context, processManager, bpmAppProvider);
+	// 3. Изолированная регистрация групп команд
+    registerProcessCommands(context, processManager);
+    registerUiCommands(context, bpmAppProvider);
+    registerConfigCommands(context, bpmAppProvider);
 
     vscode.window.registerTreeDataProvider('bpmsoft-sidebar-view', bpmAppProvider);
 
