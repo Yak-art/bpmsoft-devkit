@@ -2,9 +2,12 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ServerState } from '../models/serverState';
 import { BpmStatusBarManager } from '../ui/bpmStatusBarManager';
+import { Logger, LogLevel } from './logger';
 import { WebHostPathResolver } from './webHostPathResolver';
 
 export class ProcessManager implements vscode.Disposable {
+	private readonly logger = Logger.getInstance();
+	
     private activeTerminal: vscode.Terminal | null = null;
     private isRestarting: boolean = false;
     private currentState: ServerState = ServerState.Stopped;
@@ -48,6 +51,8 @@ export class ProcessManager implements vscode.Disposable {
             return;
         }
 
+		this.logger.log(this, `Запуск процесса сервера по пути: ${dllPath}`, LogLevel.Info);
+
         this.setServerState(ServerState.Starting);
 
         this.activeTerminal = vscode.window.createTerminal({
@@ -71,6 +76,8 @@ export class ProcessManager implements vscode.Disposable {
             return;
         }
 
+		this.logger.log(this, "Отправка сигнала остановки (Ctrl+C)");
+
         this.activeTerminal.sendText('\u0003', false);
         this.activeTerminal.dispose();
     }
@@ -80,6 +87,8 @@ export class ProcessManager implements vscode.Disposable {
             this.start();
             return;
         }
+
+		this.logger.log(this, `Перезапуск процесса сервера`, LogLevel.Info);
 
         vscode.window.showInformationMessage('Перезапуск сервера...');
         this.isRestarting = true;
@@ -97,6 +106,8 @@ export class ProcessManager implements vscode.Disposable {
             if (this.activeTerminal && closedTerminal === this.activeTerminal) {
                 this.activeTerminal = null;
                 this.setServerState(ServerState.Stopped);
+
+				this.logger.log(this, "Процесс отключен");
 
                 if (this.isRestarting) {
                     this.isRestarting = false;
@@ -120,6 +131,7 @@ export class ProcessManager implements vscode.Disposable {
             if (e.data.includes('Application started') || e.data.includes('Hosting environment:')) {
                 this.setServerState(ServerState.Running);
             }
+			// Добавить сюда проверку на ended, чтобы закрывать терминал только тут
         });
 
         this.disposables.push(closeSub, dataSub);
